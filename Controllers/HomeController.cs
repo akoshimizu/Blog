@@ -1,3 +1,5 @@
+using Blog.Attributes;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Blog.Controllers
@@ -7,6 +9,7 @@ namespace Blog.Controllers
     public class HomeController : ControllerBase
     {
         [HttpGet("")]
+        //[ApiKey]   //Utilizado para receber algumas apis 
         public IActionResult Get()
         {
             return Ok();
