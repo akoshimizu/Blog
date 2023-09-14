@@ -16,6 +16,7 @@ LoadConfiguration(app);
 
 app.UseAuthentication(); //quem é
 app.UseAuthorization(); //o que pode fazer
+app.UseStaticFiles();
 app.MapControllers();
 app.Run();
 
