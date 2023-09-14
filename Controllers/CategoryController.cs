@@ -5,6 +5,7 @@ using Blog.ViewModels;
 using Blog.ViewModels.Categories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Blog.Controllers
 {
@@ -13,10 +14,28 @@ namespace Blog.Controllers
     public class CategoryController : ControllerBase
     {
         [HttpGet("v1/categories")]
-        public async Task<IActionResult> GetAsync([FromServices]BlogDataContext context)
+        public async Task<IActionResult> GetAsync(
+            [FromServices]IMemoryCache cache,
+            [FromServices]BlogDataContext context)
         {
-            var categories = await context.Categories.ToListAsync();
-            return Ok(new ResultViewModel<List<Category>>(categories));
+            try
+            {
+                var categories = cache.GetOrCreate("CategoriesCache", entry =>
+                {
+                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                    return GetCategories(context);
+                });
+                return Ok(new ResultViewModel<List<Category>>(categories));
+            }
+            catch (System.Exception)
+            {
+                return StatusCode(500, new ResultViewModel<List<Category>>("05EX4 - Falha interna do servidor!"));
+            }
+        }
+
+        private List<Category> GetCategories(BlogDataContext context)
+        {
+            return context.Categories.ToList();
         }
 
         [HttpGet("v1/categories/{id:int}")]
@@ -55,7 +74,7 @@ namespace Blog.Controllers
             }
             catch (System.Exception)
             {
-                return StatusCode(500, new ResultViewModel<List<Category>>("05EX6 - Falha interna do servidor!"));
+                return StatusCode(500, new ResultViewModel<List<Category>>("05EX4 - Falha interna do servidor!"));
             }
         }
 
@@ -86,7 +105,7 @@ namespace Blog.Controllers
             }
             catch (System.Exception)
             {
-                return StatusCode(500, new ResultViewModel<List<Category>>("05EX8 - Falha interna do servidor!"));
+                return StatusCode(500, new ResultViewModel<List<Category>>("05EX4 - Falha interna do servidor!"));
             }
         }
 
